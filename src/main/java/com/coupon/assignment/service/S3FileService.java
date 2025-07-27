@@ -82,6 +82,48 @@ public class S3FileService {
         }
     }
 
+    public String moveToProcessedFolder(String originalS3Key, String fileId) {
+        String fileName = extractFileNameFromS3Key(originalS3Key);
+        String processedS3Key = generateS3Key(processedFolder, fileId, fileName);
+
+        try {
+            CopyObjectRequest copyRequest = CopyObjectRequest.builder()
+                .sourceBucket(bucketName)
+                .sourceKey(originalS3Key)
+                .destinationBucket(bucketName)
+                .destinationKey(processedS3Key)
+                .build();
+
+            s3Client.copyObject(copyRequest);
+            deleteFile(originalS3Key);
+
+            return processedS3Key;
+
+        } catch (Exception e) {
+            throw new RuntimeException("파일 이동 실패: " + e.getMessage(), e);
+        }
+    }
+
+    public String moveToFailedFolder(String originalS3Key, String fileId) {
+        String fileName = extractFileNameFromS3Key(originalS3Key);
+        String failedS3Key = generateS3Key(failedFolder, fileId, fileName);
+
+        try {
+            CopyObjectRequest copyRequest = CopyObjectRequest.builder()
+                .sourceBucket(bucketName)
+                .sourceKey(originalS3Key)
+                .destinationBucket(bucketName)
+                .destinationKey(failedS3Key)
+                .build();
+
+            s3Client.copyObject(copyRequest);
+            return failedS3Key;
+
+        } catch (Exception e) {
+            throw new RuntimeException("실패 파일 이동 실패: " + e.getMessage(), e);
+        }
+    }
+
     public void deleteFile(String s3Key) {
         try {
             DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
