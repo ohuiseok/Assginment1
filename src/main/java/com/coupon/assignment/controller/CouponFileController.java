@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+
 @RestController
 @RequestMapping("/coupons/files")
 @RequiredArgsConstructor
@@ -21,7 +23,7 @@ public class CouponFileController {
     private final FileStorageService fileStorageService;
 
     @PostMapping("/upload")
-    public ResponseEntity<CommonResponse<?>> uploadFile(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<CommonResponse<?>> uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
         FileDomain fileDomain = fileStorageService.store(file);
 
         return ResponseEntity

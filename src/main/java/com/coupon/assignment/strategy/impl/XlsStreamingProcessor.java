@@ -11,20 +11,13 @@ import java.util.List;
 
 @Slf4j
 @Component
-public class XlsStreamingProcessor extends ExcelStreamingProcessor implements FileStreamingProcessor {
-
-    @Override
-    public String getSupportedExtension() {
-        return "xls"; // XLS 파일 지원 (구 버전 Excel)
-    }
+public class XlsStreamingProcessor implements FileStreamingProcessor {
 
     @Override
     public List<String> extractUserIds(InputStream inputStream) throws Exception {
-
         List<String> userIds = new ArrayList<>();
 
         try (Workbook workbook = WorkbookFactory.create(inputStream)) {
-            // 첫 번째 시트 사용
             Sheet sheet = workbook.getSheetAt(0);
 
             boolean isFirstRow = true;
@@ -33,35 +26,27 @@ public class XlsStreamingProcessor extends ExcelStreamingProcessor implements Fi
             for (Row row : sheet) {
                 rowCount++;
 
-                // 헤더 행 스킵
                 if (isFirstRow) {
                     isFirstRow = false;
                     continue;
                 }
 
-                // 행에서 사용자 ID 추출
                 String userId = processExcelRow(row, rowCount);
                 if (userId != null && !userId.trim().isEmpty()) {
                     userIds.add(userId.trim());
                 }
 
-                // 진행률 로깅 (500행마다)
-                if (rowCount % 500 == 0) {
-                    log.debug("excel 진행률: {} lines, {} size", rowCount, userIds.size());
+                if (rowCount % 1000 == 0) {
+                    log.debug("XLS 진행률: {} lines, {} size", rowCount, userIds.size());
                 }
-
-                log.info("excel completed - Total : {} lines, {} size", rowCount, userIds.size());
             }
 
+            log.info("XLS completed - Total : {} lines, {} size", rowCount, userIds.size());
         }
 
         return userIds;
-
     }
 
-    /**
-     * Excel 행에서 사용자 ID 추출
-     */
     private String processExcelRow(Row row, int rowNumber) {
         try {
             // 첫 번째 셀에서 사용자 ID 추출
@@ -80,14 +65,11 @@ public class XlsStreamingProcessor extends ExcelStreamingProcessor implements Fi
             return userId.trim();
 
         } catch (Exception e) {
-            log.warn(" Error  Error: {}", e.getMessage());
+            log.warn("XLS 행 처리 에러: {}", e.getMessage());
             return null;
         }
     }
 
-    /**
-     * 셀 값을 문자열로 변환
-     */
     private String getCellValueAsString(Cell cell) {
         if (cell == null) {
             return null;
@@ -119,14 +101,33 @@ public class XlsStreamingProcessor extends ExcelStreamingProcessor implements Fi
                     return cell.toString();
             }
         } catch (Exception e) {
-            log.warn(" Error  Error: {}", e.getMessage());
+            log.warn("셀 값 변환 에러: {}", e.getMessage());
             return null;
         }
     }
 
+    @Override
+    public String getSupportedExtension() {
+        return "xls";
+    }
+
+    @Override
+    public int getBufferSize() {
+        return 16384;
+    }
+
+    @Override
+    public int getHeaderLinesToSkip() {
+        return 1;
+    }
+
+    @Override
+    public int getBatchSize() {
+        return 1000;
+    }
 
     @Override
     public long getMaxFileSize() {
-        return 30 * 1024 * 1024; // XLS 파일은 30MB로 제한 (구 형식은 더 제한적)
+        return 100 * 1024 * 1024;
     }
 }

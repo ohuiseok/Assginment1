@@ -15,7 +15,6 @@ public class ExcelStreamingProcessor implements FileStreamingProcessor {
 
     @Override
     public List<String> extractUserIds(InputStream inputStream) throws Exception {
-
         List<String> userIds = new ArrayList<>();
 
         try (Workbook workbook = WorkbookFactory.create(inputStream)) {
@@ -40,14 +39,13 @@ public class ExcelStreamingProcessor implements FileStreamingProcessor {
                     userIds.add(userId.trim());
                 }
 
-                // 진행률 로깅 (500행마다)
-                if (rowCount % 500 == 0) {
-                    log.debug("excel 진행률: {} lines, {} size", rowCount, userIds.size());
+                // 진행률 로깅 (1000행마다)
+                if (rowCount % 1000 == 0) {
+                    log.debug("Excel 진행률: {} lines, {} size", rowCount, userIds.size());
                 }
-
-                log.info("excel completed - Total : {} lines, {} size", rowCount, userIds.size());
             }
 
+            log.info("Excel completed - Total : {} lines, {} size", rowCount, userIds.size());
         }
 
         return userIds;
@@ -74,7 +72,7 @@ public class ExcelStreamingProcessor implements FileStreamingProcessor {
             return userId.trim();
 
         } catch (Exception e) {
-            log.warn(" Error  Error: {}", e.getMessage());
+            log.warn("Excel 행 처리 에러: {}", e.getMessage());
             return null;
         }
     }
@@ -113,11 +111,10 @@ public class ExcelStreamingProcessor implements FileStreamingProcessor {
                     return cell.toString();
             }
         } catch (Exception e) {
-            log.warn(" Error  Error: {}", e.getMessage());
+            log.warn("셀 값 변환 에러: {}", e.getMessage());
             return null;
         }
     }
-
 
     @Override
     public String getSupportedExtension() {
@@ -126,7 +123,7 @@ public class ExcelStreamingProcessor implements FileStreamingProcessor {
 
     @Override
     public int getBufferSize() {
-        return 32768; // 32KB for Excel files (더 복잡한 처리 필요)
+        return 32768; // 32KB for Excel files
     }
 
     @Override
@@ -136,11 +133,11 @@ public class ExcelStreamingProcessor implements FileStreamingProcessor {
 
     @Override
     public int getBatchSize() {
-        return 500; // Excel은 더 복잡하므로 작은 배치 크기
+        return 1000; // 배치 크기
     }
 
     @Override
     public long getMaxFileSize() {
-        return 50 * 1024 * 1024; // Excel 파일은 50MB로 제한 (메모리 사용량 고려)
+        return 200 * 1024 * 1024; // 200MB로 증가 (IOUtils 설정과 맞춤)
     }
 }
