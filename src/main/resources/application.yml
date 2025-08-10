@@ -1,6 +1,18 @@
+server:
+  port: 8088
+  tomcat:
+    max-swallow-size: 100MB
+    max-http-form-post-size: 100MB
+    # 톰캣 메모리 설정
+    max-connections: 200
+    accept-count: 100
+    max-threads: 200
+  max-http-request-size: 100MB
 spring:
   application:
     name: assignment
+  profiles:
+    active: local
   h2:
     console:
       enabled: true
@@ -14,6 +26,99 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+  
+  # Spring Batch 설정
+  batch:
+    job:
+      enabled: true  # 자동 실행 비활성화 (스케줄러로 제어)
+    jdbc:
+      initialize-schema: always  # Batch 테이블 자동 생성
+      isolation-level-for-create: default
+      table-prefix: BATCH_
+  
+  # SQL 초기화 설정
+  sql:
+    init:
+      mode: always
+      continue-on-error: true
+  
+  # Kafka 설정 - 연결 실패 시 graceful handling
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        enable.idempotence: true
+        connections.max.idle.ms: 30000
+        request.timeout.ms: 30000
+        delivery.timeout.ms: 120000
+    consumer:
+      group-id: coupon-processing-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.coupon.assignment.dto"
+        connections.max.idle.ms: 30000
+        session.timeout.ms: 30000
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+    listener:
+      ack-mode: manual_immediate
+    admin:
+      # Kafka 연결 실패 시 애플리케이션 시작을 차단하지 않음
+      fail-fast: false
+      operation-timeout: 30s
 
+  # 스케줄러 설정
+  quartz:
+    job-store-type: memory
+    scheduler-name: CouponScheduler
+  
+  # 파일 업로드 설정
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+      enabled: true
+
+# 파일 업로드 설정
 file:
-  dir: C:\\Users\\
+  dir: C:\\Users\\오의석\\Downloads\\
+  upload:
+    max-file-size: 100MB
+    max-request-size: 100MB
+
+# AWS S3 설정
+aws:
+  accessKeyId: {키}
+  secretKey: {비밀키}
+  region: ap-northeast-2
+  s3:
+    bucket: seoul-assignment1-bucket
+    folder:
+      uploads: uploads
+      processed: processed
+      failed: failed
+
+# 스트리밍 처리 설정
+streaming:
+  buffer-size: 16384  # 16KB
+  chunk-size: 8192    # 8KB
+  max-file-size: 104857600  # 100MB
+
+# 배치 처리 설정
+batch:
+  retry:
+    cron: "0 0 * * * ?"  # 매 시간마다 실행
+    max-retry-count: 3
+    chunk-size: 100
+
+logging:
+  level:
+    com.coupon.assignment: DEBUG
+    org.apache.kafka: WARN  # Kafka 로그 레벨 낮춤
+    org.springframework.kafka: WARN
+    org.springframework.batch: DEBUG

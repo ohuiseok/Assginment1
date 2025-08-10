@@ -27,20 +27,30 @@ public class CommonResponse<T> {
     }
 
     public static <T> CommonResponse<T> success(String messageKey, T data) {
-        String resolvedMessage = staticMessageSource.getMessage(
-                messageKey,
-                null,
-                LocaleContextHolder.getLocale()
-        );
+        String resolvedMessage;
+        try {
+            resolvedMessage = staticMessageSource.getMessage(
+                    messageKey,
+                    null,
+                    LocaleContextHolder.getLocale()
+            );
+        } catch (Exception e) {
+            resolvedMessage = "Operation completed successfully";
+        }
         return new CommonResponse<>(resolvedMessage, data, LocalDateTime.now());
     }
 
     public static CommonResponse<Void> success(String messageKey) {
-        String resolvedMessage = staticMessageSource.getMessage(
-                messageKey,
-                null,
-                LocaleContextHolder.getLocale()
-        );
+        String resolvedMessage;
+        try {
+            resolvedMessage = staticMessageSource.getMessage(
+                    messageKey,
+                    null,
+                    LocaleContextHolder.getLocale()
+            );
+        } catch (Exception e) {
+            resolvedMessage = "Operation completed successfully";
+        }
         return new CommonResponse<>(resolvedMessage, null, LocalDateTime.now());
     }
 

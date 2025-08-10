@@ -21,9 +21,26 @@ dependencies {
 	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	
+	// 파일 처리 라이브러리
 	implementation("org.apache.poi:poi:5.2.5")
 	implementation("org.apache.poi:poi-ooxml:5.2.5")
 	implementation("org.apache.commons:commons-csv:1.14.0")
+	
+	// Kafka 의존성
+	implementation 'org.springframework.kafka:spring-kafka'
+	implementation 'org.springframework.boot:spring-boot-testcontainers'
+	implementation 'org.testcontainers:kafka'
+	implementation 'org.testcontainers:junit-jupiter'
+	
+	// 스케줄러 배치
+	implementation 'org.springframework.boot:spring-boot-starter-batch'
+	implementation 'org.springframework.boot:spring-boot-starter-quartz'
+	
+	// AWS S3
+	implementation("org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE")
+	implementation("software.amazon.awssdk:s3:2.32.9")
+	
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'com.h2database:h2'
